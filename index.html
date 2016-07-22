@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>AddSubmitFormApp Example</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+  <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.16/angular.min.js"></script>	
+  <script src="miniProjetApp.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.css">
+</head>
+<body ng-app="miniProjetApp">
+<div class="container" ng-controller="miniProjetController">
+  
+    <div class="jumbotron">
+    <h1>Angular JS form</h1>      
+    <p>Add and submit Meeting Room Reservations</p>      
+  </div>
+  <form class="form-horizontal" role="form" ng-submit="addReservation(reservation);">
+    <div class="form-group" ng-if="shouldShowEditing()" >
+      <label class="col-sm-2 control-label">Edition</label>
+      <div class="col-sm-10">
+		<div ng-class="{'has-warning has-feedback': ($parent.reservation.name.length >= 3 && $parent.reservation.name.length < 5) , 'has-success has-feedback': $parent.reservation.name.length >= 5,
+              'has-error has-feedback': $parent.reservation.name.length < 3} ">	  
+		<label class="control-label" for="name">Prenom (5 caractères)</label>
+        <input class="form-control" id="name" type="text" value="{{name.length > 0 && name || 'Name'}}" ng-model="$parent.reservation.name">
+		<span  ng-class="{'glyphicon glyphicon-warning-sign form-control-feedback': ($parent.reservation.name.length >= 3 && $parent.reservation.name.length < 5) , 'glyphicon glyphicon-ok form-control-feedback': $parent.reservation.name.length >= 5,
+              'glyphicon glyphicon-remove form-control-feedback': $parent.reservation.name.length < 3} "></span>
+		</div>
+		<div ng-class="{'has-warning has-feedback': ($parent.reservation.lastName.length >= 3 && $parent.reservation.lastName.length < 5) , 'has-success has-feedback': $parent.reservation.lastName.length >= 5,
+              'has-error has-feedback': $parent.reservation.lastName.length < 3} ">
+		<label class="control-label" for="lastName">Nom (5 caractères)</label>
+		<input class="form-control" id="lastName" type="text" value="{{lastName.length > 0 && lastName || 'Last Name'}}" ng-model="$parent.reservation.lastName">
+		<span  ng-class="{'glyphicon glyphicon-warning-sign form-control-feedback': ($parent.reservation.lastName.length >= 3 && $parent.reservation.lastName.length < 5) , 'glyphicon glyphicon-ok form-control-feedback': $parent.reservation.lastName.length >= 5,
+              'glyphicon glyphicon-remove form-control-feedback': $parent.reservation.lastName.length < 3} "></span>
+		</div>
+		<div ng-class="{'has-warning has-feedback': ($parent.reservation.participants< 3) , 'has-success has-feedback': ($parent.reservation.participants >= 3 && $parent.reservation.participants <= 10),
+              'has-error has-feedback': $parent.reservation.participants > 10} ">
+		<label class="control-label" for="participants">Participants (entre 3 et 10 maximum)</label>
+		<input class="form-control" id="participants" type="number" value="{{!participants || 'Participants'}}" ng-model="$parent.reservation.participants" >
+		<span  ng-class="{'glyphicon glyphicon-warning-sign form-control-feedback': ($parent.reservation.participants< 3)  , 'glyphicon glyphicon-ok form-control-feedback': ($parent.reservation.participants >= 3 && $parent.reservation.participants <= 10),'glyphicon glyphicon-remove form-control-feedback': $parent.reservation.participants > 10} "></span>
+		</div>		
+		<div ng-class="{'has-warning has-feedback': ( $parent.reservation.email && !ValidateEmail($parent.reservation.email))  , 'has-success has-feedback': ValidateEmail($parent.reservation.email),
+              'has-error has-feedback': $parent.reservation.email.length<3}">
+		<label class="control-label" for="email">Email</label>
+		<input class="form-control" id="email" type="email" value="{{email.length > 0 && email || 'Email'}}" ng-model="$parent.reservation.email">
+		<span  ng-class="{'glyphicon glyphicon-warning-sign form-control-feedback': ( $parent.reservation.email && !ValidateEmail($parent.reservation.email)) , 'glyphicon glyphicon-ok form-control-feedback': ValidateEmail($parent.reservation.email),
+              'glyphicon glyphicon-remove form-control-feedback':  $parent.reservation.email.length<3} "></span>
+		</div>
+		<!--
+		<div ng-class="{'has-warning has-feedback': ($parent.reservation.birthDate && $parent.reservation.birthDate<new Date()) , 'has-success has-feedback': $parent.reservation.birthDate>new Date(),
+              'has-error has-feedback': (!$parent.reservation.birthDate)} ">
+			  -->
+		<label class="control-label" for="birthDate">Date de reservation (dans le future)</label>
+		<input class="form-control" id="birthDate" type="date" value="{{birthDate.length > 0 && birthDate || 'BirthDay'}}" ng-model="$parent.reservation.birthDate" data-date-format="dd/mm/yyyy"  min="2013-01-01" max="2019-12-31" required>
+		<!--
+		<span  ng-class="{'glyphicon glyphicon-warning-sign form-control-feedback': ($parent.reservation.birthDate && $parent.reservation.birthDate<new Date()), 'glyphicon glyphicon-ok form-control-feedback':  $parent.reservation.birthDate>new Date(),
+              'glyphicon glyphicon-remove form-control-feedback': (!$parent.reservation.birthDate)} "></span>
+			  
+		</div>
+		-->
+	  </div>
+    </div>
+    <div class="form-group" ng-if="!shouldShowEditing()||shouldShowEditingExisting()">
+      <label for="inputPassword" class="col-sm-2 control-label">Consultation</label>
+      <div class="col-sm-10">
+		<table class="table table-bordered table-hover">
+		  <thead>
+			  <tr>
+				<th>Organizer Firstname</th>
+				<th>Organizer Lastname</th>
+				<th>Email</th>
+				<th>Meeting Participants</th>
+				<th>Date de reservation</th>
+			  </tr>
+		  </thead>
+		  <tr ng-repeat="res in reservations" ng-click="setEditedReservation($index);"  ng-class="{'active': $index===editedIndex}">
+			<td>{{ res.name }}</td>
+			<td>{{ res.lastName}}</td>
+			<td>{{ res.email}}</td>
+			<td>{{ res.participants}}</td>
+			<td>{{ res.birthDate}}</td>
+		  </tr>
+		</table>
+		<p class="bg-info">This table is editable. Please click on a row to edit it.</p>	
+      </div>
+    </div>
+	<div class="form-group" ng-if="shouldShowEditingExisting()" >
+      <label class="col-sm-2 control-label">Edit Existing</label>
+      <div class="col-sm-10">
+		<div ng-class="{'has-warning has-feedback': ($parent.editedReservation.name.length >= 3 && $parent.editedReservation.name.length < 5) , 'has-success has-feedback': $parent.editedReservation.name.length >= 5,
+              'has-error has-feedback': $parent.editedReservation.name.length < 3} ">	  
+		<label class="control-label" for="nameExisting">Prenom (5 caractères)</label>
+        <input class="form-control" id="nameExisting" type="text" value="{{name.length > 0 && name || 'Name'}}" ng-model="$parent.editedReservation.name">
+		<span  ng-class="{'glyphicon glyphicon-warning-sign form-control-feedback': ($parent.editedReservation.name.length >= 3 && $parent.editedReservation.name.length < 5) , 'glyphicon glyphicon-ok form-control-feedback': $parent.editedReservation.name.length >= 5,
+              'glyphicon glyphicon-remove form-control-feedback': $parent.editedReservation.name.length < 3} "></span>
+		</div>
+		<div ng-class="{'has-warning has-feedback': ($parent.editedReservation.lastName.length >= 3 && $parent.editedReservation.lastName.length < 5) , 'has-success has-feedback': $parent.editedReservation.lastName.length >= 5,
+              'has-error has-feedback': $parent.editedReservation.lastName.length < 3} ">
+		<label class="control-label" for="lastNameExisting">Nom (5 caractères)</label>
+		<input class="form-control" id="lastNameExisting" type="text" value="{{lastName.length > 0 && lastName || 'Last Name'}}" ng-model="$parent.editedReservation.lastName">
+		<span  ng-class="{'glyphicon glyphicon-warning-sign form-control-feedback': ($parent.editedReservation.lastName.length >= 3 && $parent.editedReservation.lastName.length < 5) , 'glyphicon glyphicon-ok form-control-feedback': $parent.editedReservation.lastName.length >= 5,
+              'glyphicon glyphicon-remove form-control-feedback': $parent.editedReservation.lastName.length < 3} "></span>
+		</div>
+		<div ng-class="{'has-warning has-feedback': ($parent.editedReservation.participants< 3) , 'has-success has-feedback': ($parent.editedReservation.participants >= 3 && $parent.editedReservation.participants <= 10),
+              'has-error has-feedback': $parent.editedReservation.participants> 10} ">
+		<label class="control-label" for="participantsExisting">Participants (entre 3 et 10 maximum)</label>
+		<input class="form-control" id="participantsExisting" type="number" value="{{!participants || 'Participants'}}" ng-model="$parent.editedReservation.participants" >
+		<span  ng-class="{'glyphicon glyphicon-warning-sign form-control-feedback': ($parent.editedReservation.participants< 3)  , 'glyphicon glyphicon-ok form-control-feedback': ($parent.editedReservation.participants>= 3 && $parent.editedReservation.participants <= 10),'glyphicon glyphicon-remove form-control-feedback': $parent.editedReservation.participants > 10} "></span>
+		</div>			
+		<div ng-class="{'has-warning has-feedback': ( $parent.editedReservation.email && !ValidateEmail($parent.editedReservation.email))  , 'has-success has-feedback': ValidateEmail($parent.editedReservation.email),
+              'has-error has-feedback': $parent.editedReservation.email.length<3}">
+		<label class="control-label" for="emailExisting">Email</label>
+		<input class="form-control" id="emailExisting" type="email" value="{{email.length > 0 && email || 'Email'}}" ng-model="$parent.editedReservation.email">
+		<span  ng-class="{'glyphicon glyphicon-warning-sign form-control-feedback': ( $parent.editedReservation.email && !ValidateEmail($parent.editedReservation.email)) , 'glyphicon glyphicon-ok form-control-feedback': ValidateEmail($parent.editedReservation.email),
+              'glyphicon glyphicon-remove form-control-feedback':  $parent.editedReservation.email.length<3} "></span>
+		</div>
+		<!--
+		<div ng-class="{'has-warning has-feedback': ($parent.editedReservation.birthDate && $parent.editedReservation.birthDate<new Date()) , 'has-success has-feedback': $parent.editedReservation.birthDate>new Date(),
+              'has-error has-feedback': (!$parent.editedReservation.birthDate)} ">
+			  -->
+		<label class="control-label" for="birthDateExisting">Date de reservation (dans le future)</label>
+		<input class="form-control" id="birthDateExisting" type="date" value="{{birthDate.length > 0 && birthDate || 'BirthDay'}}" ng-model="$parent.editedReservation.birthDate" data-date-format="dd/mm/yyyy"  min="2013-01-01" max="2019-12-31" required>
+		<!--
+		<span  ng-class="{'glyphicon glyphicon-warning-sign form-control-feedback': ($parent.editedReservation.birthDate && $parent.editedReservation.birthDate<new Date()), 'glyphicon glyphicon-ok form-control-feedback':  $parent.editedReservation.birthDate>new Date(),
+              'glyphicon glyphicon-remove form-control-feedback': (!$parent.editedReservation.birthDate)} "></span>
+			  
+		</div>
+		-->
+	  </div>
+    </div>
+	<button type="button" class="btn btn-success pull-right" ng-click="stopEditing();"ng-if="shouldShowEditing()" >Consultation</button>
+	<button type="button" class="btn btn-primary pull-right" ng-click="startEditing();" ng-if="!shouldShowEditing() && !shouldShowEditingExisting()">New Reservation</button>
+	<button type="button" class="btn btn-warning pull-right" ng-click="startEditingExisting();" ng-if="!shouldShowEditing()&&selectedIndex!=null && editedIndex!=null">Edit Reservation</button>
+	<button type="button" class="btn btn-danger pull-right" ng-click="updateReservation();" ng-if="shouldShowEditingExisting()&&selectedIndex==null && editedIndex!=null">Valid Modification of Reservation</button>
+	<button type="submit" class="btn btn-primary pull-right" ng-if="shouldShowEditing()">Add Reservations</button>
+  </form>
+</div>
+
+</body>
+</html>
